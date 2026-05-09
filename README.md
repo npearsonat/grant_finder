@@ -2,23 +2,17 @@
 
 A semantic grant matching system that takes a plain-language description of an organization and returns the most relevant federal grant programs, explained by an LLM.
 
----
-
 ## The Problem
 
 The federal government distributes over $500 billion annually across thousands of grant programs. Nonprofits, universities, and small businesses looking for funding either pay for expensive tools like Instrumentl or spend hours doing manual keyword searches on Grants.gov. Neither works well when your organization's mission doesn't use the same vocabulary as the grant listing.
 
 This project uses semantic search to bridge that gap. Instead of keyword matching, it embeds both the organization's description and the grant program profiles into the same vector space, then finds the closest matches by meaning rather than exact wording.
 
----
-
 ## How It Works
 
 A user provides a plain-language description of their organization. The system embeds that description using a sentence transformer model, searches a FAISS index of 1,222 federal grant program vectors, and passes the top matches to Llama 3.1 which explains why each program is or isn't a good fit and flags any eligibility concerns.
 
 The whole pipeline runs in about 1.2 seconds.
-
----
 
 ## Data
 
@@ -31,8 +25,6 @@ HHS accounts for 55% of awards, followed by NSF at 10% and DoD at 6%.
 One interesting finding from the data exploration: 73% of organizations in the dataset received funding from only one or two programs. This confirms the discovery gap the project is trying to address. Most grant-seeking organizations have a very narrow view of what's available to them.
 
 The data also revealed why the system embeds grant profiles rather than org profiles. 43% of organizations have fewer than 200 characters of combined description text, which is too sparse to embed meaningfully. Grant programs, by contrast, aggregate descriptions from hundreds of recipients and always produce dense, embeddable text. A new organization's short self-description gets matched against these rich grant program vectors rather than sparse org profiles.
-
----
 
 ## Architecture
 
@@ -55,31 +47,43 @@ Runs the system against four realistic organization profiles (rural health nonpr
 
 ---
 
-## Example Output
+## Example Output - Neighborhood House
 
-Query: "We are a nonprofit dedicated to preserving and revitalizing endangered Native American languages through digital archiving, community education programs, and intergenerational language transmission projects in partnership with tribal communities in the Pacific Northwest."
+To test the system, we used a real organization that appears in the FY2023 USASpending data: the Neighborhood House Association (NHA), a large nonprofit human services agency in San Diego that received $97.4 million in federal grants in FY2023, almost entirely from Head Start (CFDA 93.600).
 
-Top match: PROMOTE THE SURVIVAL AND CONTINUING VITALITY OF NATIVE AMERICAN LANGUAGES (CFDA 93.587, HHS) — similarity score 0.60
+The goal was to see if the system could surface Head Start as a top match using only text from NHA's public website, with no knowledge of their actual grant history.
 
-This result has no keyword overlap with the query. The match is entirely semantic.
+### The Organization
 
----
+![NHA Website](images/neighborhoodhouse_website.png)
 
-## Stack
+NHA describes itself as one of San Diego County's largest nonprofit human services agencies, offering 28 programs across 125 locations including early childhood education, youth development, mental health services, senior services, and workforce development.
 
-- Python, pandas, numpy
-- sentence-transformers (all-MiniLM-L6-v2)
-- FAISS (faiss-cpu)
-- Groq API (llama-3.1-8b-instant)
-- Google Colab + Google Drive
+### Their Actual Grant
+
+![NHA USASpending](images/neighborhoodhouse_grant.png)
+
+According to USASpending.gov, NHA received $97.4 million from Head Start (CFDA 93.600) in FY2023.
+
+### What the System Found
+
+We ran two queries through grant_finder:
+
+First, NHA's generic about page description, which talks about their history, staff count, and broad service areas without mentioning specific programs. Head Start ranked 22nd out of 1,222 programs with a similarity score of 0.44.
+
+Then, a more detailed description from their Continuum of Care page, which specifically mentions Early Head Start, prenatal services, children ages 0-5, and kindergarten readiness programs. Head Start jumped to #1 out of 1,222 programs.
+
+![NHA Rankings](images/neighborhoodhouse_ranking.png)
+
+This demonstrates two things. The system correctly identifies Head Start as the top match when given enough programmatic detail. And query specificity matters — a detailed description of what you actually do will outperform a generic mission statement every time.
+
+The match is purely semantic. The system has no knowledge of NHA's grant history. It matched based on language overlap between NHA's program description and the aggregated text of how Head Start funded work gets described across its 1,060 recipient organizations.
 
 ---
 
 ## Limitations
 
 The embedding model truncates input at 256 tokens, so only the first ~200 words of each grant profile influence the vector. The dataset covers FY2023 only, so programs that award on a multi-year cycle may be missing. The system has no way to check whether a grant program is currently accepting applications. The LLM occasionally invents specific details not present in the program description, which is a known issue with smaller models. The system covers federal grants only and does not include state, foundation, or corporate funding sources.
-
----
 
 ## Potential Improvements
 
@@ -88,8 +92,6 @@ The embedding model truncates input at 256 tokens, so only the first ~200 words 
 - Try a larger embedding model like all-mpnet-base-v2 for better semantic quality
 - Add a Gradio interface for interactive use without running notebooks
 - Upgrade to a larger LLM to reduce hallucination in explanations
-
----
 
 ## Data Source
 
