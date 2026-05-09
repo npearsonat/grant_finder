@@ -2,6 +2,8 @@
 
 A semantic grant matching system that takes a plain-language description of an organization and returns the most relevant federal grant programs, explained by an LLM.
 
+![model](images/grant_finder_model.png)
+
 ## The Problem
 
 The federal government distributes over $500 billion annually across thousands of grant programs. Nonprofits, universities, and small businesses looking for funding either pay for expensive tools like Instrumentl or spend hours doing manual keyword searches on Grants.gov. Neither works well when your organization's mission doesn't use the same vocabulary as the grant listing.
