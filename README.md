@@ -47,6 +47,10 @@ Runs the system against four realistic organization profiles (rural health nonpr
 
 ---
 
+## FAISS and Cosine Similarity
+
+FAISS runs on memory, so it doesnt not require a database setup. It was designed by meta specifically for similarity search on vectors. Each embedding is a vector of 384 numbers that represeents a point in 384 dimensional space. Cosine similairty represents the angle between the vectors. Two two texts with similar subjects will point in roughly the same direction. 
+
 ## Example Output - Neighborhood House
 
 To test the system, we used a real organization that appears in the FY2023 USASpending data: the Neighborhood House Association (NHA), a large nonprofit human services agency in San Diego that received $97.4 million in federal grants in FY2023, almost entirely from Head Start (CFDA 93.600).
